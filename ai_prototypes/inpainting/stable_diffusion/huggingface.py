@@ -4,8 +4,9 @@ import tqdm
 import numpy as np
 from PIL import Image
 import torch
-
 from diffusers import StableDiffusionInpaintPipeline
+
+from ai_prototypes.utils.PIL_image import dilate, filter_gaussian
 
 
 def build_stable_diffusion():
@@ -46,9 +47,23 @@ def outpaint(pipe, image, mask, prompt=''):
     image = image.resize((width, height))
     mask = mask.resize((width, height))
 
-    image = np.asarray(image)
-    mask = np.asarray(mask)
+    image_np = np.asarray(image)
+    mask_np = np.asarray(mask)
 
+    gen_image = outpaint_with_numpy(pipe, image_np, mask_np, prompt=prompt)
+
+    mask = filter_gaussian(dilate(mask, 13), 3)
+
+    # omask = (mask > 0).astype('uint8')[..., None]
+    omask = (np.asarray(mask) / 255)[..., None]
+    out = (1 - omask) * image + omask * np.clip(gen_image * 255, 0, 255).astype('uint8')
+    out = out.astype('uint8')
+
+    return Image.fromarray(out)
+
+
+def outpaint_with_numpy(pipe, image, mask, prompt=''):
+    height, width = image.shape[:2]
     negative_prompt = "person, any object, duplicate artifacts"
     guidance_scale = 3
     num_samples = 1
