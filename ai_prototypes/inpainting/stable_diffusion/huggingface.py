@@ -7,6 +7,7 @@ import torch
 from diffusers import StableDiffusionInpaintPipeline
 
 from ai_prototypes.utils.PIL_image import dilate, filter_gaussian
+from ai_prototypes.utils.blend import smoothe_blend
 
 
 def build_stable_diffusion():
@@ -52,14 +53,8 @@ def outpaint(pipe, image, mask, prompt=''):
 
     gen_image = outpaint_with_numpy(pipe, image_np, mask_np, prompt=prompt)
 
-    mask = filter_gaussian(dilate(mask, 13), 3)
-
-    # omask = (mask > 0).astype('uint8')[..., None]
-    omask = (np.asarray(mask) / 255)[..., None]
-    out = (1 - omask) * image + omask * np.clip(gen_image * 255, 0, 255).astype('uint8')
-    out = out.astype('uint8')
-
-    return Image.fromarray(out)
+    out = smoothe_blend(image, mask, np.clip(gen_image * 255, 0, 255).astype('uint8'))
+    return out
 
 
 def outpaint_with_numpy(pipe, image, mask, prompt=''):
