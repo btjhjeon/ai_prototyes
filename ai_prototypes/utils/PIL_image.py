@@ -51,6 +51,12 @@ def blend(img1, mask, img2):
     return Image.fromarray(out.astype('uint8'))
 
 
+def alpha_blend(img1, mask, img2, alpha):
+    omask = (np.asarray(mask) / 255)[..., None]
+    out = (1 - omask) * img1 + alpha * omask * img2 + (1 - alpha) * omask * img1
+    return Image.fromarray(out.astype('uint8'))
+
+
 def smoothe_blend(img1, mask, img2):
     mask = filter_gaussian(dilate(mask, 13), 3)
 
