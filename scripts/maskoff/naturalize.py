@@ -43,7 +43,8 @@ if __name__ == "__main__":
         image_paths = [args.image]
         mask_paths = [args.mask]
         output_paths = [args.output]
-        os.makedirs(os.path.split(args.output)[0], exist_ok=True)
+        if os.path.split(args.output)[0]:
+            os.makedirs(os.path.split(args.output)[0], exist_ok=True)
 
     for image_path, mask_path, output_path in zip(image_paths, mask_paths, output_paths):
         image = load_image(image_path, size)
