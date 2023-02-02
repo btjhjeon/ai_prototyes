@@ -12,7 +12,7 @@ from ai_prototypes.inpainting.lama.evaluation.data import load_image
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='ai_prototypes/inpainting/lama/big-lama/')
+    parser.add_argument('--model', type=str, default='checkpoints/inpainting/lama/lama-celeba-hq/lama-fourier/')
     parser.add_argument('-i', '--image', type=str, default='examples/mask_off/stargan-v2/result/stargan-v2__reference_elon__input_elon__blended.jpg')
     parser.add_argument('-m', '--mask', type=str, default='examples/mask_off/mask_aligned/mask_elon.png')
     parser.add_argument('-o', '--output', type=str, default='result.jpg')

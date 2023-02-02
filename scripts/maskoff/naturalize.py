@@ -12,6 +12,7 @@ from ai_prototypes.inpainting.lama.evaluation.data import load_image
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, default='checkpoints/inpainting/lama/lama-celeba-hq/lama-fourier/')
     parser.add_argument("-i", "--image", type=str, default='examples/mask_off/lama/target')
     parser.add_argument("-m", "--mask", type=str, default='examples/mask_off/lama/mask')
     parser.add_argument("-o", "--output", type=str, default='examples/mask_off/lama/inpaint')
@@ -25,8 +26,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     setup()
-    # predict_config = load_config('ai_prototypes/inpainting/lama/big-lama/')
-    predict_config = load_config('ai_prototypes/inpainting/lama/lama-celeba-hq/lama-fourier/')
+    predict_config = load_config(args.model)
 
     device = torch.device(predict_config.device)
     model = load_model(predict_config, device)
