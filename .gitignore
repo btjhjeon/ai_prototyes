@@ -1,3 +1,14 @@
+# products
+.vscode
+
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.pth
+*.ckpt
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

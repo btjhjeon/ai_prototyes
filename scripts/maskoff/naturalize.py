@@ -1,7 +1,7 @@
-import argparse
 import os
-import cv2
+import argparse
 import numpy as np
+import cv2
 import torch
 
 from ai_prototypes.inpainting.lama import setup
@@ -12,20 +12,21 @@ from ai_prototypes.inpainting.lama.evaluation.data import load_image
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='ai_prototypes/inpainting/lama/big-lama/')
-    parser.add_argument('-i', '--image', type=str, default='examples/mask_off/stargan-v2/result/stargan-v2__reference_elon__input_elon__blended.jpg')
-    parser.add_argument('-m', '--mask', type=str, default='examples/mask_off/mask_aligned/mask_elon.png')
-    parser.add_argument('-o', '--output', type=str, default='result.jpg')
-    parser.add_argument('-d', '--dilate', type=int, default=0)
+    parser.add_argument("-i", "--image", type=str, default='examples/mask_off/lama/target')
+    parser.add_argument("-m", "--mask", type=str, default='examples/mask_off/lama/mask')
+    parser.add_argument("-o", "--output", type=str, default='examples/mask_off/lama/inpaint')
     return parser.parse_args()
 
 
-if __name__ == '__main__':
-    setup()
-    args = parse_args()
-    predict_config = load_config(args.model)
+if __name__ == "__main__":
+    size = (256, 256)
+    dilation_kernel_size = 11
 
-    dilation_kernel_size = args.dilate
+    args = parse_args()
+
+    setup()
+    # predict_config = load_config('ai_prototypes/inpainting/lama/big-lama/')
+    predict_config = load_config('ai_prototypes/inpainting/lama/lama-celeba-hq/lama-fourier/')
 
     device = torch.device(predict_config.device)
     model = load_model(predict_config, device)
@@ -45,11 +46,10 @@ if __name__ == '__main__':
         os.makedirs(os.path.split(args.output)[0], exist_ok=True)
 
     for image_path, mask_path, output_path in zip(image_paths, mask_paths, output_paths):
-        image = load_image(image_path, mode='RGB')
-        _, mask = load_image(mask_path, mode='L', return_orig=True)
-        if dilation_kernel_size > 0:
-            mask = cv2.dilate(mask, np.ones((dilation_kernel_size, dilation_kernel_size), np.uint8))
-            mask = mask.astype(np.float32) / 255
+        image = load_image(image_path, size)
+        _, mask = load_image(mask_path, size, "L", return_orig=True)
+        mask = cv2.dilate(cv2.Canny(mask, 128, 255), np.ones((dilation_kernel_size, dilation_kernel_size), np.uint8))
+        mask = mask.astype(np.float32) / 255
 
         cur_res = infer(predict_config, model, image, mask, device)
         cur_res = cv2.cvtColor(cur_res, cv2.COLOR_RGB2BGR)

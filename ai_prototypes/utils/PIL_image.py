@@ -20,12 +20,20 @@ def load_images(paths, size=None, mode="RGB"):
     return images
 
 
-def merge_images(images, margin=0):
+def merge_images(images, margin=0, grid=None):
     width, height = images[0].size
+    if grid is None:
+        grid = (len(images), 1)
 
-    result = Image.new(mode="RGB", size=(width*len(images) + margin*(len(images)-1), height), color="white")
+    board_size = (
+        width*grid[0] + margin*(grid[0]-1),
+        height*grid[1] + margin*(grid[1]-1)
+    )
+    result = Image.new(mode="RGB", size=board_size, color="white")
     for i, image in enumerate(images):
-        result.paste(image.resize((width, height)), [i*width, 0, (i+1)*width, height])
+        loc = (i%grid[0], i//grid[0])
+        box = [loc[0]*width, loc[1]*height, (loc[0]+1)*width, (loc[1]+1)*height]
+        result.paste(image.resize((width, height)), box)
     return result
 
 

@@ -9,8 +9,11 @@ from torch.utils.data import Dataset
 import torch.nn.functional as F
 
 
-def load_image(fname, mode='RGB', return_orig=False):
-    img = np.array(Image.open(fname).convert(mode))
+def load_image(fname, size=None, mode='RGB', return_orig=False):
+    img = Image.open(fname).convert(mode)
+    if size is not None:
+        img = img.resize(size)
+    img = np.array(img)
     if img.ndim == 3:
         img = np.transpose(img, (2, 0, 1))
     out_img = img.astype('float32') / 255
