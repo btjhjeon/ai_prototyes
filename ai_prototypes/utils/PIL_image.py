@@ -20,6 +20,12 @@ def load_images(paths, size=None, mode="RGB"):
     return images
 
 
+def save_image(image, path):
+    if not isinstance(image, Image.Image):
+        image = Image.fromarray(image)
+    image.save(path, quality=100, subsampling=0)
+
+
 def merge_images(images, margin=0, grid=None):
     width, height = images[0].size
     if grid is None:
