@@ -8,6 +8,7 @@ from ai_prototypes.inpainting.lama import setup
 from ai_prototypes.inpainting.lama.config import load_config
 from ai_prototypes.inpainting.lama.model import load_model, infer
 from ai_prototypes.inpainting.lama.evaluation.data import load_image
+from ai_prototypes.utils.opencv import save_image
 
 
 def parse_args():
@@ -16,14 +17,15 @@ def parse_args():
     parser.add_argument("-i", "--image", type=str, default='examples/mask_off/lama/target')
     parser.add_argument("-m", "--mask", type=str, default='examples/mask_off/lama/mask')
     parser.add_argument("-o", "--output", type=str, default='examples/mask_off/lama/inpaint')
+    parser.add_argument('-d', '--dilate', type=int, default=11)
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    size = (256, 256)
-    dilation_kernel_size = 11
-
     args = parse_args()
+
+    size = (256, 256)
+    dilation_kernel_size = args.dilate
 
     setup()
     predict_config = load_config(args.model)
@@ -50,8 +52,9 @@ if __name__ == "__main__":
         image = load_image(image_path, size)
         _, mask = load_image(mask_path, size, "L", return_orig=True)
         mask = cv2.dilate(cv2.Canny(mask, 128, 255), np.ones((dilation_kernel_size, dilation_kernel_size), np.uint8))
+        # cv2.imwrite('temp.png', mask)
         mask = mask.astype(np.float32) / 255
 
         cur_res = infer(predict_config, model, image, mask, device)
         cur_res = cv2.cvtColor(cur_res, cv2.COLOR_RGB2BGR)
-        cv2.imwrite(output_path, cur_res)
+        save_image(cur_res, output_path)

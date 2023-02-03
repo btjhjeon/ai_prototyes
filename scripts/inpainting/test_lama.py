@@ -8,14 +8,15 @@ from ai_prototypes.inpainting.lama import setup
 from ai_prototypes.inpainting.lama.config import load_config
 from ai_prototypes.inpainting.lama.model import load_model, infer
 from ai_prototypes.inpainting.lama.evaluation.data import load_image
+from ai_prototypes.utils.opencv import save_image
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='checkpoints/inpainting/lama/lama-celeba-hq/lama-fourier/')
-    parser.add_argument('-i', '--image', type=str, default='examples/mask_off/stargan-v2/result/stargan-v2__reference_elon__input_elon__blended.jpg')
-    parser.add_argument('-m', '--mask', type=str, default='examples/mask_off/mask_aligned/mask_elon.png')
-    parser.add_argument('-o', '--output', type=str, default='result.jpg')
+    parser.add_argument('-i', '--image', type=str, default='examples/mask_off/MMU_team/input')
+    parser.add_argument('-m', '--mask', type=str, default='examples/mask_off/MMU_team/mask')
+    parser.add_argument('-o', '--output', type=str, default='examples/mask_off/MMU_team/input_inpainted')
     parser.add_argument('-d', '--dilate', type=int, default=0)
     return parser.parse_args()
 
@@ -53,4 +54,4 @@ if __name__ == '__main__':
 
         cur_res = infer(predict_config, model, image, mask, device)
         cur_res = cv2.cvtColor(cur_res, cv2.COLOR_RGB2BGR)
-        cv2.imwrite(output_path, cur_res)
+        save_image(cur_res, output_path)

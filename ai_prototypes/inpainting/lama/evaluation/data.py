@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 def load_image(fname, size=None, mode='RGB', return_orig=False):
     img = Image.open(fname).convert(mode)
-    if size is not None:
+    if size is not None and tuple(img.size) != tuple(size):
         img = img.resize(size)
     img = np.array(img)
     if img.ndim == 3:
