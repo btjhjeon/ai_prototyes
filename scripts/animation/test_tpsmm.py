@@ -1,12 +1,5 @@
-from time import time
-import matplotlib
-matplotlib.use('Agg')
 import os
-import sys
-import yaml
 from argparse import ArgumentParser
-from tqdm import tqdm
-from scipy.spatial import ConvexHull
 import numpy as np
 import imageio
 from skimage.transform import resize
@@ -14,6 +7,7 @@ from skimage import img_as_ubyte
 import torch
 
 from ai_prototypes.animation.tpsmm.model import load_model
+from ai_prototypes.utils.PIL_image import save_image
 
 
 def parse_args():
@@ -21,9 +15,9 @@ def parse_args():
     parser.add_argument("--config", default='configs/animation/tpsmm/vox-256.yaml', help="path to config")
     parser.add_argument("--checkpoint", default='checkpoints/animation/tpsmm/vox.pth.tar', help="path to checkpoint to restore")
 
-    parser.add_argument("--source_image", default='examples/mask_off/reference_aligned/reference_jin.png', help="path to source image")
-    parser.add_argument("--driving_image", default='examples/mask_off/input_inpainted/input_jin.png', help="path to driving video")
-    parser.add_argument("--result_image", default='result.jpg', help="path to output")
+    parser.add_argument("--source_image", default='examples/mask_off/MMU_team/reference', help="path to source image")
+    parser.add_argument("--driving_image", default='examples/mask_off/MMU_team/input_inpainted', help="path to driving video")
+    parser.add_argument("--result_image", default='examples/mask_off/MMU_team/reference_animated', help="path to output")
     
     parser.add_argument("--img_shape", default="256,256", type=lambda x: list(map(int, x.split(','))),
                         help='Shape of image, that the model was trained on.')
@@ -71,12 +65,14 @@ if __name__ == "__main__":
         driving_image = [resize(driving_image, opt.img_shape)[..., :3]]
 
         source = torch.tensor(source_image[np.newaxis].astype(np.float32)).permute(0, 3, 1, 2)
+        driving = torch.tensor(np.array(driving_image)[np.newaxis].astype(np.float32)).permute(0, 4, 1, 2, 3)
+
         source = source.to(device)
-        driving = torch.tensor(np.array(driving_image)[np.newaxis].astype(np.float32)).permute(0, 4, 1, 2, 3).to(device)
+        driving = driving.to(device)
 
         predictions = model(source, driving, mode=opt.mode)
 
         if os.path.split(result_path)[0]:
             os.makedirs(os.path.split(result_path)[0], exist_ok=True)
-        imageio.imsave(result_path, img_as_ubyte(predictions[0]))
+        save_image(img_as_ubyte(predictions[0]), result_path)
  
