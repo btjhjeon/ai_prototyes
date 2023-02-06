@@ -27,12 +27,12 @@ class Harmonizer():
 
         pred, _, _ = self.predictor.predict(
             image_lowres,
-            None,
+            image,
             image,
             None,
             None,
             mask_lowres,
-            None,
+            mask,
             return_numpy=False
         )
         return pred.cpu().numpy()

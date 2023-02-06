@@ -34,7 +34,7 @@ class PredictorUpsampleHSL(object):
             for transform in self.transforms:
                 image, mask = transform.transform(image, mask)
             input_mask = mask
-            if target_image_fullres is not None:
+            if image_fullres is not None:
                 for transform in self.transforms:
                     image_fullres, mask = transform.transform(image_fullres, raw_mask)
             for transform in self.transforms:

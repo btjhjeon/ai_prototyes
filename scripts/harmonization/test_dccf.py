@@ -22,7 +22,6 @@ def parse_args():
 
     parser.add_argument('--eval-prefix', type=str, default='')
     parser.add_argument('--version', type=str, default='hsl', help='[v1, hsl]')
-    parser.add_argument('--res', type=str, default='LR', help='[HR, LR]')
 
     parser.add_argument("-i", "--image", type=str, default='examples/mask_off/ray_by_finn.jpg')
     parser.add_argument("-m", "--mask", type=str, default='examples/mask_off/ray_by_finn.png')
