@@ -6,11 +6,18 @@ from PIL import Image
 import torch
 from diffusers import StableDiffusionInpaintPipeline
 
-from ai_prototypes.utils.PIL_image import dilate, filter_gaussian
-from ai_prototypes.utils.blend import smoothe_blend
+from ai_prototypes.utils.PIL_image import smoothe_blend
 
 
-def build_stable_diffusion():
+def build_stable_diffusion(model_name, torch_dtype=torch.float16):
+    pipe = StableDiffusionInpaintPipeline.from_pretrained(
+        model_name,
+        torch_dtype=torch_dtype,
+    ).to('cuda')
+    return pipe
+
+
+def build_stable_diffusion1():
     pipe = StableDiffusionInpaintPipeline.from_pretrained(
         "runwayml/stable-diffusion-inpainting",
         revision="fp16",
@@ -53,7 +60,7 @@ def outpaint(pipe, image, mask, prompt=''):
 
     gen_image = outpaint_with_numpy(pipe, image_np, mask_np, prompt=prompt)
 
-    out = smoothe_blend(image, mask, np.clip(gen_image * 255, 0, 255).astype('uint8'))
+    out = smoothe_blend(image, mask, np.clip(np.asarray(gen_image) * 255, 0, 255).astype('uint8'))
     return out
 
 
