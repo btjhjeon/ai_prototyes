@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw
 from pytorch_lightning import seed_everything
 from detectron2.data.detection_utils import _apply_exif_orientation
 
-from ai_prototypes.inpainting.stable_diffusion.huggingface import build_stable_diffusion, build_stable_diffusion2, outpaint
+from ai_prototypes.inpainting.huggingface.stable_diffusion import build_stable_diffusion, build_stable_diffusion2, inpaint
 
 
 def make_center_ingredients(image, bbox, scale):
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     # pipe = build_stable_diffusion()
     pipe = build_stable_diffusion2()
-    output = outpaint(pipe, new_image, mask)
+    output = inpaint(pipe, new_image, mask)
     # output.save('temp.png')
 
     width, height = output.size

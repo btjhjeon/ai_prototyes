@@ -1,3 +1,4 @@
+diffusers>=0.13.1
 pytorch-lightning
 omegaconf
 webdataset

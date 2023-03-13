@@ -2,14 +2,12 @@ import os
 import argparse
 from PIL import Image, ImageDraw
 from pytorch_lightning import seed_everything
-from detectron2.data.detection_utils import _apply_exif_orientation
 
-from ai_prototypes.inpainting.stable_diffusion.huggingface import (
+from ai_prototypes.inpainting.huggingface.stable_diffusion import (
     build_stable_diffusion,
-    build_stable_diffusion1,
-    build_stable_diffusion2,
-    outpaint
+    inpaint
 )
+from ai_prototypes.utils.PIL_image import apply_exif_orientation
 
 
 def parse_args():
@@ -52,14 +50,14 @@ if __name__ == "__main__":
 
     for image_path, mask_path, output_path in zip(image_paths, mask_paths, output_paths):
         image = Image.open(image_path).convert('RGB')
-        image = _apply_exif_orientation(image)
+        image = apply_exif_orientation(image)
         
         mask = Image.open(mask_path).convert('L')
-        mask = _apply_exif_orientation(mask)
+        mask = apply_exif_orientation(mask)
 
-        pipe = build_stable_diffusion('huggingface_caches/diffusers/models--merged-0.5-diffusion-inpainting')
+        pipe = build_stable_diffusion(args.model)
         # pipe = build_stable_diffusion1()
         # pipe = build_stable_diffusion2()
 
-        output = outpaint(pipe, image, mask, prompt=prompt)
+        output = inpaint(pipe, image, mask, prompt=prompt)
         output.save(output_path)

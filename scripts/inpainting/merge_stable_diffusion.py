@@ -39,7 +39,7 @@ def merge(
 
 
 def calculate_weight_distance(model_1, model_2):
-    def _calculate_module_distance(module_1, module_2):
+    def _sum_module_diff(module_1, module_2):
         state_1 = module_1.state_dict()
         state_2 = module_2.state_dict()
         assert len(state_1) == len(state_2)
@@ -57,19 +57,19 @@ def calculate_weight_distance(model_1, model_2):
         return abs_diff, square_std, num_elem
     
     abs_diff, square_std, num_elem = torch.tensor(0.0, dtype=torch.float32), torch.tensor(0.0, dtype=torch.float32), 0
-    temp_abs_diff, temp_square_std, temp_num_elem = _calculate_module_distance(model_1.text_encoder, model_2.text_encoder)
+    temp_abs_diff, temp_square_std, temp_num_elem = _sum_module_diff(model_1.text_encoder, model_2.text_encoder)
     abs_diff += temp_abs_diff
     square_std += temp_square_std
     num_elem += temp_num_elem
-    temp_abs_diff, temp_square_std, temp_num_elem = _calculate_module_distance(model_1.unet, model_2.unet)
+    temp_abs_diff, temp_square_std, temp_num_elem = _sum_module_diff(model_1.unet, model_2.unet)
     abs_diff += temp_abs_diff
     square_std += temp_square_std
     num_elem += temp_num_elem
-    temp_abs_diff, temp_square_std, temp_num_elem = _calculate_module_distance(model_1.vae, model_2.vae)
+    temp_abs_diff, temp_square_std, temp_num_elem = _sum_module_diff(model_1.vae, model_2.vae)
     abs_diff += temp_abs_diff
     square_std += temp_square_std
     num_elem += temp_num_elem
-    temp_abs_diff, temp_square_std, temp_num_elem = _calculate_module_distance(model_1.safety_checker, model_2.safety_checker)
+    temp_abs_diff, temp_square_std, temp_num_elem = _sum_module_diff(model_1.safety_checker, model_2.safety_checker)
     abs_diff += temp_abs_diff
     square_std += temp_square_std
     num_elem += temp_num_elem

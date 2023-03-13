@@ -6,46 +6,44 @@ from PIL import Image
 import torch
 from diffusers import StableDiffusionInpaintPipeline
 
-from ai_prototypes.utils.PIL_image import smoothe_blend
+from ai_prototypes.utils.PIL_image import smoothe_blend, blend
 
 
-def build_stable_diffusion(model_name, torch_dtype=torch.float16):
+def build_stable_diffusion(model_name, revision=None, torch_dtype=torch.float16):
     pipe = StableDiffusionInpaintPipeline.from_pretrained(
         model_name,
+        revision=revision,
         torch_dtype=torch_dtype,
     ).to('cuda')
     return pipe
 
 
 def build_stable_diffusion1():
-    pipe = StableDiffusionInpaintPipeline.from_pretrained(
+    return build_stable_diffusion(
         "runwayml/stable-diffusion-inpainting",
         revision="fp16",
         torch_dtype=torch.float16,
-    ).to('cuda')
-    return pipe
+    )
 
 
 def build_stable_diffusion2():
-    pipe = StableDiffusionInpaintPipeline.from_pretrained(
+    return build_stable_diffusion(
         "stabilityai/stable-diffusion-2-inpainting",
-        revision="fp16",
         torch_dtype=torch.float16,
-    ).to('cuda')
-    return pipe
+    )
 
 
-def outpaint_from_path(pipe, image_path, mask_path, output_path):
+def inpaint_from_path(pipe, image_path, mask_path, output_path):
     image = Image.open(image_path).convert('RGB')
     mask = Image.open(mask_path).convert('L')
 
-    output = outpaint(pipe, image, mask)
+    output = inpaint(pipe, image, mask)
 
     output.save(output_path)
     print(f'successfully save result to "{output_path}"!')
 
 
-def outpaint(pipe, image, mask, prompt=''):
+def inpaint(pipe, image, mask, prompt='', blend_smooth=0):
     # `height` and `width` have to be divisible by 8
     scale = 1024 / max(image.width, image.height)
     if scale > 1:
@@ -58,13 +56,11 @@ def outpaint(pipe, image, mask, prompt=''):
     image_np = np.asarray(image)
     mask_np = np.asarray(mask)
 
-    gen_image = outpaint_with_numpy(pipe, image_np, mask_np, prompt=prompt)
-
-    out = smoothe_blend(image, mask, np.clip(np.asarray(gen_image) * 255, 0, 255).astype('uint8'))
-    return out
+    gen_image = inpaint_with_numpy(pipe, image_np, mask_np, prompt=prompt, blend_smooth=blend_smooth)
+    return gen_image
 
 
-def outpaint_with_numpy(pipe, image, mask, prompt=''):
+def inpaint_with_numpy(pipe, image, mask, prompt='', blend_smooth=0):
     height, width = image.shape[:2]
     negative_prompt = "person, any object, duplicate artifacts"
     guidance_scale = 3
@@ -84,11 +80,10 @@ def outpaint_with_numpy(pipe, image, mask, prompt=''):
         output_type=np.ndarray,
     ).images[-1]
 
-    omask = (mask > 0).astype('uint8')[..., None]
-    # omask = (omask / 255)[..., None]
-    out = (1 - omask) * image + omask * np.clip(gen_image * 255, 0, 255).astype('uint8')
-    out = out.astype('uint8')
-
+    if blend_smooth > 0:
+        out = smoothe_blend(image, mask, np.clip(np.asarray(gen_image) * 255, 0, 255).astype('uint8'))
+    else:
+        out = blend(image, mask, np.clip(np.asarray(gen_image) * 255, 0, 255).astype('uint8'))
     return Image.fromarray(out)
 
 
@@ -100,4 +95,4 @@ if __name__ == "__main__":
         image_path = mask_path.replace('_mask.png', '.png')
         output_path = mask_path.replace('_mask.png', '_output.png')
 
-        outpaint_from_path(pipe, image_path, mask_path, output_path)
+        inpaint_from_path(pipe, image_path, mask_path, output_path)
