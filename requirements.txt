@@ -1,4 +1,9 @@
+# huggingface libraries
+transformers
 diffusers>=0.13.1
+accelerate
+datasets
+
 pytorch-lightning
 omegaconf
 webdataset

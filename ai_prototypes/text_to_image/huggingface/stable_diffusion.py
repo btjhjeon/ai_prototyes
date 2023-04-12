@@ -7,7 +7,7 @@ import torch
 from diffusers import StableDiffusionPipeline
 
 
-MODEL_CAPABLE_BATCH = 2
+MODEL_CAPABLE_BATCH = 4
 
 
 def build_stable_diffusion(model_name, torch_dtype=torch.float16):
@@ -19,16 +19,19 @@ def build_stable_diffusion(model_name, torch_dtype=torch.float16):
 
 
 def generate_and_save(pipe, output_path, prompt, negative_prompt='', num_samples=4):
-    outputs = []
+    output_dir = os.path.split(output_path)[0]
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
     for i in range(0, num_samples, MODEL_CAPABLE_BATCH):
         num = min(MODEL_CAPABLE_BATCH, num_samples - i)
-        outputs += generate(pipe, prompt, negative_prompt, num_samples=num)
+        outputs = generate(pipe, prompt, negative_prompt, num_samples=num)
 
-    for i, output in enumerate(outputs):
-        file, ext = os.path.splitext(output_path)
-        path = f'{file}_{i:03d}{ext}' if len(outputs) > 0 else output_path
-        output.save(path)
-        print(f'successfully save result to "{path}"!')
+        for j, output in enumerate(outputs):
+            file, ext = os.path.splitext(output_path)
+            path = f'{file}_{i+j:03d}{ext}' if len(outputs) > 0 else output_path
+            output.save(path)
+            print(f'successfully save result to "{path}"!')
 
 
 def generate(pipe, prompt, negative_prompt='', guidance_scale=7, num_samples=4):

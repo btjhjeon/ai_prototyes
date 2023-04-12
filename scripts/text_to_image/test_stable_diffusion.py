@@ -13,6 +13,7 @@ def parse_args():
                         default='/t2meta/dataset/stable-diffusion-models/custom_models/SD_1_5__gwanghwamun_1000')
     parser.add_argument('-p', '--prompt', type=str, default='<s1>')
     parser.add_argument('-np', '--neg_prompt', type=str, default='')
+    parser.add_argument('-o', '--output_path', type=str, default='temp.jpg')
     return parser.parse_args()
 
 
@@ -30,4 +31,4 @@ if __name__ == "__main__":
     print(f'[NEG_PROMPT] {neg_prompt}')
 
     pipe = build_stable_diffusion(sd_model)
-    generate_and_save(pipe, 'temp.jpg', prompt, neg_prompt, num_samples)
+    generate_and_save(pipe, args.output_path, prompt, neg_prompt, num_samples)
