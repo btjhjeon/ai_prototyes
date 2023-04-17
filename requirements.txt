@@ -13,3 +13,5 @@ scikit-learn
 scikit-image
 opencv-python
 albumentations<=0.5.2
+gradio
+jsonschema<4.0
