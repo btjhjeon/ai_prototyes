@@ -3,6 +3,10 @@ transformers
 diffusers>=0.13.1
 accelerate
 datasets
+evaluate
+seqeval
+peft
+xformers
 
 pytorch-lightning
 omegaconf
