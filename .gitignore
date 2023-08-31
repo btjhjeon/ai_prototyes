@@ -1,14 +1,21 @@
 # products
 .vscode
-checkpoints
+*.key
 
+data
+checkpoints
+model
+release
+logs
+outputs
 *.jpg
 *.jpeg
 *.png
 *.webp
 *.pth
 *.ckpt
-
+*.csv
+temp*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

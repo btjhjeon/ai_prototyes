@@ -48,10 +48,19 @@ class ChatGPTAgent:
         })
         return scripts
 
-def request_inference(prompt):
+
+def request_inference(prompt, system_prompt="", model="gpt-3.5-turbo", verbos=False):
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
     response = ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}]
+        model=model,
+        messages=messages,
+        top_p=0
     )
-    print("[CHAT] : {}".format(response['choices'][0]['message'].to_dict()['content']))
-    return response['choices'][0]['message'].to_dict()['content']
+    result = response.choices[0].message.content.strip()
+    if verbos:
+        print(f"[CHAT] : {result}")
+    return result
