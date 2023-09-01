@@ -10,11 +10,12 @@ def get_agent(key_path="anthropic.key"):
     return Anthropic(api_key=api_key)
 
 
-def request_inference(prompt, anthropic, model="claude-2", max_tokens_to_sample=300, verbos=False):
+def request_inference(prompt, anthropic, model="claude-2", max_tokens_to_sample=1024, verbos=False):
     completion = anthropic.completions.create(
         model=model,
         max_tokens_to_sample=max_tokens_to_sample,
-        prompt=prompt,
+        prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
+        top_p=0
     )
     result = completion.completion.strip()
     if verbos:

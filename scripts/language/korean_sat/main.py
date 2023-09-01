@@ -16,7 +16,7 @@ from scripts.language.korean_sat.prompt import get_prompt
 
 def predict(
     data_path: str,
-    model: str="openai",                # openai, anthropic, hf, etc.
+    model: str="hf",                # openai, anthropic, hf, etc.
     model_name: str="gpt-3.5-turbo",    # required for openai, anthropic
     model_path: str=None,               # required for hf
     tokenizer_path: str=None,           # required for hf
@@ -36,7 +36,8 @@ def predict(
 
         def _infer(prompt):
             result = openai_api.request_inference(prompt['user_prompt'], prompt['system_prompt'], model_name)
-            return result[0], result
+            first_value = result[0] if len(result) > 0 else ""
+            return first_value, result
 
     elif model.lower() == "anthropic":
         assert model_name
@@ -45,7 +46,8 @@ def predict(
 
         def _infer(prompt):
             result = anthropic_api.request_inference(prompt, agent, model_name)
-            return result[0], result
+            first_value = result[0] if len(result) > 0 else ""
+            return first_value, result
 
     elif model.lower() == "hf":
         assert model_path
@@ -105,7 +107,8 @@ def predict(
 
                 result = tokenizer.decode(outputs[0], skip_special_tokens=True)
                 result = result[len(prompt):].strip()
-                return result[0], result
+                first_value = result[0] if len(result) > 0 else ""
+                return first_value, result
     else:
         need_integrated_prompt = True
         print(f"Only evaluation for {model_name} with result file.")
@@ -116,7 +119,7 @@ def predict(
     results = []
     intermediate_result_path = f"outputs/results_{data_name}_{model_name}_{mode}.json"
     if os.path.exists(intermediate_result_path):
-        with open(intermediate_result_path, 'r') as f:
+        with open(intermediate_result_path, 'r', encoding='utf-8') as f:
             results = json.load(f)
 
     try:
@@ -124,8 +127,10 @@ def predict(
         earned_score = 0
         earned_score_common = 0
         earned_score_select = 0
+        missing_score = 0
         num_total = 0
         num_correct = 0
+        num_missing = 0
         for i, d in tqdm.tqdm(enumerate(data), total=len(data)):
 
             for j, p in enumerate(d['problems']):
@@ -148,6 +153,9 @@ def predict(
 
                 total_score += score
                 num_total += 1
+                if not pred.isdigit():
+                    num_missing += 1
+                    missing_score += score
                 if pred == answer:
                     earned_score += score
                     num_correct += 1
@@ -163,11 +171,13 @@ def predict(
         import traceback
         traceback.print_exc()
 
-    with open(intermediate_result_path, 'w') as f:
-        json.dump(results, f)
+    with open(intermediate_result_path, 'w', encoding='utf-8') as f:
+        json.dump(results, f, ensure_ascii=False)
     
-    print(f"[SCORE] {earned_score}/{total_score}, {earned_score_common}+{earned_score_select}")
-    print(f"[ACCURACY] {num_correct}/{num_total}")
+    print(f"[SCORE] {earned_score}/{total_score}")
+    print(f"[COMMON] {earned_score_common}, [SELECT]{earned_score_select}")
+    print(f"[ACCURACY] {num_correct/num_total:.4f} ({num_correct}/{num_total})")
+    print(f"[# MISSING]: {num_missing}, [MISSING SCORE] {missing_score}")
 
 
 if __name__ == '__main__':
