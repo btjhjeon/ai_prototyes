@@ -140,6 +140,11 @@ def predict(
 
                 if num_total >= len(results):
                     pred, text = _infer(prompt)
+                    pred = pred.replace('①', '1')
+                    pred = pred.replace('②', '2')
+                    pred = pred.replace('③', '3')
+                    pred = pred.replace('④', '4')
+                    pred = pred.replace('⑤', '5')
                     results.append({
                         "no": num_total+1,
                         "text": text,
@@ -153,9 +158,6 @@ def predict(
 
                 total_score += score
                 num_total += 1
-                if not pred.isdigit():
-                    num_missing += 1
-                    missing_score += score
                 if pred == answer:
                     earned_score += score
                     num_correct += 1
@@ -163,6 +165,9 @@ def predict(
                         earned_score_common += score
                     else:
                         earned_score_select += score
+                elif not pred.isdigit():
+                    num_missing += 1
+                    missing_score += score
 
                 # print(result)
                 # print(f"### GT: {answer}")

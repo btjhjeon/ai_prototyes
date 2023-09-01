@@ -1,7 +1,9 @@
+mkdir -p logs/
+mkdir -p outputs/
+
 data_path=$PWD/2023.json
 
-
-for num_shot in 0 -1
+for num_shot in -1 0 1
 do
 
 # SKT LLM 7B (2022.12.15) -> 보고용은 (230503)으로 표현

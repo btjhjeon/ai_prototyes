@@ -26,5 +26,5 @@ def request_inference(prompt, anthropic, model="claude-2", max_tokens_to_sample=
 # UNITTEST
 if __name__ == "__main__":
     agent = get_agent()
-    prompt=f"{HUMAN_PROMPT} Can you help me effectively ask for a raise at work?{AI_PROMPT}"
+    prompt=f"Can you help me effectively ask for a raise at work?"
     request_inference(prompt, agent, verbos=True)
