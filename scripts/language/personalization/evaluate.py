@@ -32,9 +32,9 @@ def evaluate(
         result = mecab.morphs(row['response'])
         golden = goldens[i]
 
-        score_pcover += calculate_pcover(result, golden, idf_dict)
+        score_pcover += calculate_pcover(result, history, idf_dict)
         score_pf1 += calculate_pf1(result, history)
-        score_bleu += sentence_bleu([' '.join(h) for h in history], ' '.join(result), weights=(1, 0, 0, 0))
+        score_bleu += sentence_bleu([' '.join(golden)], ' '.join(result), weights=(1, 0, 0, 0))
         score_rouge += rouge.get_scores(' '.join(result), ' '.join(golden))[0]["rouge-1"]['r']
     score_pcover /= num_data
     score_pf1 /= num_data
@@ -85,19 +85,22 @@ def calculate_pf1(result, history):
     return (2 * p * r) / (p + r)
 
 
-def calculate_pcover(result, reference, idf_dict):
+def calculate_pcover(result, history, idf_dict):
     if len(result) == 0:
         return 0
 
-    c = 0
-    has_c = {}
-    for w in result:
-        if w in reference and w not in has_c:
-            # c += idf_dict[w]
-            if w in idf_dict:
-                c += idf_dict[w]
-                has_c[w] = 1
-    return c / len(result)
+    s_list = []
+    for h in history:
+        c = 0
+        has_c = {}
+        for w in result:
+            if w in h and w not in has_c:
+                # c += idf_dict[w]
+                if w in idf_dict:
+                    c += idf_dict[w]
+                    has_c[w] = 1
+        s_list.append(c / len(result))    
+    return max(s_list)
 
 
 if __name__ == "__main__":
