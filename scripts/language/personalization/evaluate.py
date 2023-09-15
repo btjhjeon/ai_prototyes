@@ -16,9 +16,11 @@ def evaluate(
         data = [row for row in reader]
 
     mecab = Mecab()
+    histories = [[*row['personas'].split("\n"), row['golden']] for row in data]
+    histories = [[mecab.morphs(r) for r in history] for history in histories]
     goldens = [row['golden'] for row in data]
     goldens = [mecab.morphs(g) for g in goldens]
-    idf_dict = get_idf_dict(goldens)
+    idf_dict = get_idf_dict([sum(history, []) for history in histories])
     rouge = Rouge()
 
     score_pf1 = 0
@@ -27,9 +29,8 @@ def evaluate(
     score_rouge = 0 # ROUGE-1
     num_data = len(data)
     for i, row in tqdm.tqdm(enumerate(data), total=len(data)):
-        history = [*row['personas'].split("\n"), row['golden']]
-        history = [mecab.morphs(r) for r in history]
         result = mecab.morphs(row['response'])
+        history = histories[i]
         golden = goldens[i]
 
         score_pcover += calculate_pcover(result, history, idf_dict)
