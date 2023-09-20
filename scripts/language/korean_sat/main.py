@@ -11,12 +11,13 @@ from peft import PeftModel
 
 from ai_prototypes.language.huggingface import get_model_and_tokenizer
 from ai_prototypes.language import openai_api, anthropic_api
+from ai_prototypes.utils.huggingface import login_huggingface
 from scripts.language.korean_sat.prompt import get_prompt
 
 
 def predict(
     data_path: str,
-    model: str="hf",                # openai, anthropic, hf, etc.
+    model: str="hf",                    # openai, anthropic, hf, etc.
     model_name: str="gpt-3.5-turbo",    # required for openai, anthropic
     model_path: str=None,               # required for hf
     tokenizer_path: str=None,           # required for hf
@@ -52,11 +53,10 @@ def predict(
     elif model.lower() == "hf":
         assert model_path
         tokenizer_path = tokenizer_path if tokenizer_path is not None else model_path
-        model_path = os.path.abspath(model_path)
         if model_path.lower().endswith("hf"):
-            model_name = os.path.split(os.path.split(model_path)[0])[1]
+            model_name = os.path.split(os.path.split(os.path.abspath(model_path))[0])[1]
         else:
-            model_name = os.path.split(model_path)[1]
+            model_name = os.path.split(os.path.abspath(model_path))[1]
         need_integrated_prompt = True
 
         model, tokenizer = get_model_and_tokenizer(
