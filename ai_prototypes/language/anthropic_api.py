@@ -10,8 +10,11 @@ def get_agent(key_path="anthropic.key"):
     return Anthropic(api_key=api_key)
 
 
-def request_inference(prompt, anthropic, model="claude-2", max_tokens_to_sample=1024, verbos=False):
-    completion = anthropic.completions.create(
+agent = get_agent()
+
+
+def request_inference(prompt, model="claude-2", max_tokens_to_sample=1024, verbos=False):
+    completion = agent.completions.create(
         model=model,
         max_tokens_to_sample=max_tokens_to_sample,
         prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
@@ -25,6 +28,5 @@ def request_inference(prompt, anthropic, model="claude-2", max_tokens_to_sample=
 
 # UNITTEST
 if __name__ == "__main__":
-    agent = get_agent()
     prompt=f"Can you help me effectively ask for a raise at work?"
-    request_inference(prompt, agent, verbos=True)
+    request_inference(prompt, verbos=True)
