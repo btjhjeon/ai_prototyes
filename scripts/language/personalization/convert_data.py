@@ -29,6 +29,9 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", nargs='+')
     parser.add_argument("--output_path", type=str)
+    parser.add_argument("--test_size", type=int, default=50)
+    parser.add_argument("--test_start_idx", type=int, default=101)
+    parser.add_argument("--test_end_idx", type=int, default=250)
     return parser.parse_args()
 
 
@@ -36,24 +39,49 @@ def convert(
     data_path:List[str],
     output_path:str # require the jsonl file extension (ex. temp.jsonl)
 ):
+    random.seed(23)
+
+    data_dir, data_file = os.path.split(os.path.abspath(output_path))
+    data_name, ext = os.path.splitext(data_file)
+    output_train_path = os.path.join(data_dir, f"{data_name}_train{ext}")
+    output_test_path = os.path.join(data_dir, f"{data_name}_test{ext}")
+
     data = []
     for path in data_path:
         with open(path, "r", encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
             data.extend([d for d in reader])
     
+    args.test_end_idx = args.test_end_idx if args.test_end_idx >= 0 else len(data)
+    target_indices = list(range(args.test_start_idx, args.test_end_idx))
+    random.shuffle(target_indices)
+    test_indices = target_indices[-args.test_size:]
+
     content_id = None
-    jsonl_data = []
+    session_no = 0
+    count = 0
+    jsonl_data_train = []
+    jsonl_data_test = []
     json_data = None
     for i, d in enumerate(data):
         content_id_prev = content_id
-        content_id = d[HEADER_ID].strip()
+        content_id = d[HEADER_ID].strip() 
         assert content_id, f"Empty row in line no {i+2}"
         content = d[HEADER_CONTENT].strip() if HEADER_CONTENT in d else d[HEADER_CONTENT_EDIT].strip()
 
         if d[HEADER_SESS]:
             if json_data is not None:
-                jsonl_data.append(json_data)
+                if count in test_indices:
+                    jsonl_data_test.append(json_data)
+                else:
+                    jsonl_data_train.append(json_data)
+                count += 1
+
+            session_no_prev = session_no
+            session_no = int(d[HEADER_SESS])
+            if session_no <= session_no_prev:
+                session_no += 300
+
             user_name = d[HEADER_USER_NAME].strip().replace('[', '').replace(']이에요', '')
             user = OrderedDict()
             user["id"] = USER_ID
@@ -67,12 +95,13 @@ def convert(
             json_data = OrderedDict()
             json_data["source"] = "selectstar"
             json_data["file_name"] = output_path
-            json_data["doc_id"] = str(d[HEADER_SESS])
+            json_data["doc_id"] = str(session_no)
             json_data["meta"] = OrderedDict()
             json_data["meta"]["negative_data"] = False
             json_data["meta"]["bot_tone"] = d[HEADER_TONE_BOT].strip()
             json_data["meta"]["user_tone"] = d[HEADER_TONE_USER].strip()
             json_data["meta"]["datetime"] = d[HEADER_DATETIME].strip()
+            json_data["meta"]["personas"] = [d[HEADER_USER_NAME].strip(), content]
             json_data["speakers"] = OrderedDict()
             json_data["speakers"][USER_ID] = user
             json_data["speakers"][BOT_ID] = bot
@@ -89,9 +118,15 @@ def convert(
                 ups_sum += f" {content}"
             else:
                 conv_sum += f" {content}"
+            json_data["meta"]["personas"].append(content)
 
             if persona_no == 5:
-                template = build_prompt_template(random.randint(1, len(CONTROL_TEMPLATE_CLASSES)))
+                if count in test_indices:
+                    template_no = 2
+                else:
+                    template_no = random.randint(1, len(CONTROL_TEMPLATE_CLASSES))
+                template = build_prompt_template(template_no)
+                json_data["meta"]["template_no"] = template_no
                 initial_script = template.generate(user_name, BOT_NAME, ups_sum, conv_sum)
 
                 for p, u in initial_script:
@@ -129,14 +164,24 @@ def convert(
                         "ctrl": [],
                         "not_trainable": 0
                     })
+                    if d[HEADER_RP_ID].strip():
+                        json_data["talks"][-1]['meta'] = {"RP_ID": d[HEADER_RP_ID].strip()}
                 else:
                     json_data["talks"][-1]["msg"] += f"\n{content}"
             else:
                 raise NotImplementedError(f"Invalid ID: {content_id}")
-    jsonl_data.append(json_data)
+    if count in test_indices:
+        jsonl_data_test.append(json_data)
+    else:
+        jsonl_data_train.append(json_data)
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        for json_data in jsonl_data:
+    with open(output_train_path, "w", encoding="utf-8") as f:
+        for json_data in jsonl_data_train:
+            json.dump(json_data, f, ensure_ascii=False)
+            f.write("\n")
+
+    with open(output_test_path, "w", encoding="utf-8") as f:
+        for json_data in jsonl_data_test:
             json.dump(json_data, f, ensure_ascii=False)
             f.write("\n")
 
