@@ -45,6 +45,7 @@ def get_model_and_tokenizer(
     lora_alpha: int=16,
     lora_dropout: float=0.05,
     toolken_functions_fn: str="",
+    trust_remote_code: bool=False,
     training: bool=True,
     deepspeed: bool=False,
 ):
@@ -83,6 +84,7 @@ def get_model_and_tokenizer(
             # max_memory=max_memory,
             load_in_4bit=load_in_4bit,
             load_in_8bit=load_in_8bit,
+            trust_remote_code=trust_remote_code,
             quantization_config=BitsAndBytesConfig(
                 load_in_4bit=load_in_4bit,
                 load_in_8bit=load_in_8bit,
@@ -99,6 +101,7 @@ def get_model_and_tokenizer(
             model_path,
             torch_dtype=torch_dtype,
             device_map=device_map,
+            trust_remote_code=trust_remote_code,
             # max_memory=max_memory,
         )
 
@@ -181,6 +184,7 @@ def get_model_and_tokenizer(
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_path,
         model_max_length=model_max_length,
+        trust_remote_code=trust_remote_code
     )
 
     if tokenizer.pad_token is None:

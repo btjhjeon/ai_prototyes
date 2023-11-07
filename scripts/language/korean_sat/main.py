@@ -26,6 +26,7 @@ def predict(
     bf16: bool=False,                   # required for hf
     model_max_length: int=2048,         # required for hf
     peft_type: str="none",              # required for hf
+    trust_remote_code: bool=False,      # required for hf
     num_shot: int=-1,
 ):
     mode = "CoT" if num_shot < 0 else f"{num_shot}-shot"
@@ -68,6 +69,7 @@ def predict(
             bf16=bf16,
             peft_type=peft_type,
             training=False,
+            trust_remote_code=trust_remote_code
         )
         model.eval()
 
@@ -103,7 +105,7 @@ def predict(
                         do_sample=True,
                         top_k=0,
                         top_p=0.92
-                    )
+                )
 
                 result = tokenizer.decode(outputs[0], skip_special_tokens=True)
                 result = result[len(prompt):].strip()
