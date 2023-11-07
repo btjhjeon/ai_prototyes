@@ -15,6 +15,9 @@ outputs
 *.pth
 *.ckpt
 *.csv
+*.json
+*.jsonl
+*.xlsx
 temp*
 
 # Byte-compiled / optimized / DLL files

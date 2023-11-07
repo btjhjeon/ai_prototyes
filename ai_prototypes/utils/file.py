@@ -4,13 +4,13 @@ import json
 import warnings
 
 
-def load_data(path):
+def load_data(path, **kwargs):
     if path.endswith(".jsonl"):
         return load_jsonl(path)
     elif path.endswith(".json"):
         return load_json(path)
     elif path.endswith(".csv"):
-        return load_csv(path)
+        return load_csv(path, **kwargs)
 
 
 def load_json(path):
@@ -25,11 +25,18 @@ def load_jsonl(path):
         return [json.loads(j) for j in jsonls if j]
 
 
-def load_csv(path):
+def load_csv(path, return_fieldnames=False):
     assert os.path.exists(path)
     with open(path, 'r', encoding="utf-8") as f:
         reader = csv.DictReader(f)
-        return [d for d in reader], reader.fieldnames
+        if return_fieldnames:
+            field_names = []
+            for name in reader.fieldnames:
+                if name not in field_names:
+                    field_names.append(name)
+            return [d for d in reader], field_names
+        else:
+            return [d for d in reader]
 
 
 def write_data(data, path):
