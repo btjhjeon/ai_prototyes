@@ -25,13 +25,24 @@ USER_ID = "화자1"
 BOT_ID = "화자2"
 
 
+TEST_SET_INFO = [
+    {
+        "size": 50,
+        "start_idx": 101,
+        "end_idx": 250
+    },
+    {
+        "size": 100,
+        "start_idx": 350,
+        "end_idx": 1000
+    }
+]
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", nargs='+')
     parser.add_argument("--output_path", type=str)
-    parser.add_argument("--test_size", type=int, default=50)
-    parser.add_argument("--test_start_idx", type=int, default=101)
-    parser.add_argument("--test_end_idx", type=int, default=250)
     return parser.parse_args()
 
 
@@ -52,14 +63,19 @@ def convert(
             reader = csv.DictReader(f)
             datas.append([d for d in reader])
     
-    args.test_end_idx = args.test_end_idx if args.test_end_idx >= 0 else len(datas)
-    target_indices = list(range(args.test_start_idx, args.test_end_idx))
-    random.shuffle(target_indices)
-    test_indices = target_indices[-args.test_size:]
+    test_indices = []
+    for test_info in TEST_SET_INFO:
+        test_start_idx = test_info["start_idx"]
+        test_end_idx = test_info["end_idx"]
+        test_size = test_info["size"]
+        target_indices = list(range(test_start_idx, test_end_idx))
+        random.shuffle(target_indices)
+        test_indices += target_indices[-test_size:]
 
     content_id = None
     session_id = None
     count = 0
+    jsonl_data_all = []
     jsonl_data_train = []
     jsonl_data_test = []
     json_data = None
@@ -76,6 +92,7 @@ def convert(
                         jsonl_data_test.append(json_data)
                     else:
                         jsonl_data_train.append(json_data)
+                    jsonl_data_all.append(json_data)
                     count += 1
 
                 session_id_prev = session_id
@@ -181,6 +198,7 @@ def convert(
         jsonl_data_test.append(json_data)
     else:
         jsonl_data_train.append(json_data)
+    jsonl_data_all.append(json_data)
 
     with open(output_train_path, "w", encoding="utf-8") as f:
         for json_data in jsonl_data_train:
@@ -189,6 +207,11 @@ def convert(
 
     with open(output_test_path, "w", encoding="utf-8") as f:
         for json_data in jsonl_data_test:
+            json.dump(json_data, f, ensure_ascii=False)
+            f.write("\n")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        for json_data in jsonl_data_all:
             json.dump(json_data, f, ensure_ascii=False)
             f.write("\n")
 
