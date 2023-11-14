@@ -16,7 +16,7 @@ def evaluate(
         data = [row for row in reader]
 
     mecab = Mecab()
-    histories = [[*row['personas'].split("\n"), row['golden']] for row in data]
+    histories = [[*row['persona'].split("\n"), row['golden']] for row in data]
     histories = [[mecab.morphs(r) for r in history] for history in histories]
     goldens = [row['golden'] for row in data]
     goldens = [mecab.morphs(g) for g in goldens]

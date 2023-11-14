@@ -25,24 +25,13 @@ USER_ID = "화자1"
 BOT_ID = "화자2"
 
 
-TEST_SET_INFO = [
-    {
-        "size": 50,
-        "start_idx": 101,
-        "end_idx": 250
-    },
-    {
-        "size": 100,
-        "start_idx": 350,
-        "end_idx": 1000
-    }
-]
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", nargs='+')
     parser.add_argument("--output_path", type=str)
+    parser.add_argument("--test_size", type=int, default=150)
+    parser.add_argument("--test_start_idx", type=int, default=101)
+    parser.add_argument("--test_end_idx", type=int, default=1000)
     return parser.parse_args()
 
 
@@ -50,8 +39,6 @@ def convert(
     data_path:List[str],
     output_path:str # require the jsonl file extension (ex. temp.jsonl)
 ):
-    random.seed(23)
-
     data_dir, data_file = os.path.split(os.path.abspath(output_path))
     data_name, ext = os.path.splitext(data_file)
     output_train_path = os.path.join(data_dir, f"{data_name}_train{ext}")
@@ -63,14 +50,13 @@ def convert(
             reader = csv.DictReader(f)
             datas.append([d for d in reader])
     
-    test_indices = []
-    for test_info in TEST_SET_INFO:
-        test_start_idx = test_info["start_idx"]
-        test_end_idx = test_info["end_idx"]
-        test_size = test_info["size"]
-        target_indices = list(range(test_start_idx, test_end_idx))
-        random.shuffle(target_indices)
-        test_indices += target_indices[-test_size:]
+    random.seed(23)
+    test_start_idx = args.test_start_idx
+    test_end_idx = args.test_end_idx
+    test_size = args.test_size
+    target_indices = list(range(test_start_idx, test_end_idx))
+    random.shuffle(target_indices)
+    test_indices = target_indices[-test_size:]
 
     content_id = None
     session_id = None
@@ -96,7 +82,7 @@ def convert(
                     count += 1
 
                 session_id_prev = session_id
-                session_id = f"{data_no+1}_{row[HEADER_SESS]}"
+                session_id = row[HEADER_SESS].strip()
 
                 user_name = row[HEADER_USER_NAME].strip().replace('[', '').replace(']이에요', '')
                 user = OrderedDict()
@@ -166,24 +152,32 @@ def convert(
             
             elif content_id.startswith("s"):
                 if "u" in content_id:
+                    meta = {
+                        "ID": content_id
+                    }
+                    if row[HEADER_RP_ID].strip():
+                        meta["RP_ID"] = [id.strip() for id in row[HEADER_RP_ID].strip().split("\n")]
                     json_data["talks"].append({
                         "speaker": USER_ID,
                         "msg": content,
                         "ctrl": [],
                         "not_trainable": 32,
-                        "meta": {"ID": content_id}
+                        "meta": meta
                     })
                 elif "b" in content_id:
                     if content_id != content_id_prev:
+                        meta = {
+                            "ID": content_id
+                        }
+                        if row[HEADER_RP_ID].strip():
+                            meta["RP_ID"] = [id.strip() for id in row[HEADER_RP_ID].strip().split("\n")]
                         json_data["talks"].append({
                             "speaker": BOT_ID,
                             "msg": content,
                             "ctrl": [],
                             "not_trainable": 0,
-                            "meta": {"ID": content_id}
+                            "meta": meta
                         })
-                        if row[HEADER_RP_ID].strip():
-                            json_data["talks"][-1]['meta']["RP_ID"] = row[HEADER_RP_ID].strip()
                     else:
                         pre_content = json_data["talks"][-1]["msg"]
                         pre_last_sent = pre_content.split("\n")[-1].strip()
@@ -200,6 +194,8 @@ def convert(
         jsonl_data_train.append(json_data)
     jsonl_data_all.append(json_data)
 
+    check_sanity(jsonl_data_all)
+
     with open(output_train_path, "w", encoding="utf-8") as f:
         for json_data in jsonl_data_train:
             json.dump(json_data, f, ensure_ascii=False)
@@ -214,6 +210,12 @@ def convert(
         for json_data in jsonl_data_all:
             json.dump(json_data, f, ensure_ascii=False)
             f.write("\n")
+
+
+def check_sanity(data):
+    ids = [d["doc_id"] for d in data]
+    unique_ids = set(ids)
+    assert len(ids) == len(unique_ids)
 
 
 if __name__ == "__main__":
