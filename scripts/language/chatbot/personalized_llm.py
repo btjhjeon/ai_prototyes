@@ -6,7 +6,7 @@ import random
 
 import gradio as gr
 
-from ai_prototypes.language import openai_api, glm_api
+from ai_prototypes.language.api import openai, glm
 
 
 BASE_MEMORY_TEMPLATE = [
@@ -44,8 +44,8 @@ class ConversationBot:
 
 
 if __name__ == "__main__":
-    agent = glm_api.AdotAgent("http://172.27.30.115", "철수")
-    # agent = openai_api.ChatGPTAgent("복돌이")
+    agent = glm.AdotAgent("http://172.27.30.115", "철수")
+    # agent = openai.ChatGPTAgent("복돌이")
     bot = ConversationBot(agent)
 
     ups_summary = "나는 30대 남성이며 어쿠스틱 음악을 좋아함. 특히 피아노 치는것이 취미이며 쇼팽을 존경함."

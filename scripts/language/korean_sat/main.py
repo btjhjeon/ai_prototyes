@@ -10,7 +10,7 @@ from transformers import StoppingCriteriaList
 from peft import PeftModel
 
 from ai_prototypes.language.huggingface import get_model_and_tokenizer
-from ai_prototypes.language import openai_api, anthropic_api
+from ai_prototypes.language.api import openai, anthropic
 from ai_prototypes.utils.huggingface import login_huggingface
 from scripts.language.korean_sat.prompt import get_prompt
 
@@ -37,17 +37,17 @@ def predict(
         need_integrated_prompt = False
 
         def _infer(prompt):
-            result = openai_api.request_inference(prompt['user_prompt'], prompt['system_prompt'], model_name)
+            result = openai.request_inference(prompt['user_prompt'], prompt['system_prompt'], model_name)
             first_value = result[0] if len(result) > 0 else ""
             return first_value, result
 
     elif model.lower() == "anthropic":
         assert model_name
         need_integrated_prompt = True
-        agent = anthropic_api.get_agent()
+        agent = anthropic.get_agent()
 
         def _infer(prompt):
-            result = anthropic_api.request_inference(prompt, agent, model_name)
+            result = anthropic.request_inference(prompt, agent, model_name)
             first_value = result[0] if len(result) > 0 else ""
             return first_value, result
 

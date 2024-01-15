@@ -9,7 +9,7 @@ import argparse
 from collections import Counter
 from datasets import load_dataset
 
-from ai_prototypes.language import openai_api, anthropic_api
+from ai_prototypes.language.api import get_response
 from scripts.language.qna.retrieve_sentence import (
     get_embedding_model,
     get_embeddings,
@@ -47,29 +47,6 @@ DATA_PATH = {
     "example": os.path.join(DATA_DIR, "complaint_total/complaint_total_v2.json"),
     "law": os.path.join(DATA_DIR, "law/law_v3.json")
 }
-
-
-def get_response(prompt, agent="openai"):
-    if agent == "openai":
-        enc = tiktoken.get_encoding("cl100k_base")
-        token_len = len(enc.encode(prompt))
-
-        if token_len < 8000:
-            model = "gpt-4"
-        else:
-            model = "gpt-3.5-turbo-16k"
-
-        system_prompt = '당신은 제목, 질문요약, 관련법령, 답변을 보고 예상되는 질문을 생성하는 AI입니다.'
-        result = openai_api.request_inference(prompt, system_prompt, model)
-
-    elif agent == "anthropic":
-        model = "claude-2"
-        result = anthropic_api.request_inference(prompt, model, max_tokens_to_sample=8192)
-
-    else:
-        raise NotImplementedError(f"\"{agent}\" not supported yet!")
-
-    return result, model
 
 
 if __name__=="__main__":
@@ -159,7 +136,11 @@ if __name__=="__main__":
 
         try:
             prompt = get_prompt(data, example)
-            response, model = get_response(prompt, agent)
+            response, model = get_response(
+                prompt,
+                system_prompt='당신은 제목, 질문요약, 관련법령, 답변을 보고 예상되는 질문을 생성하는 AI입니다.',
+                agent=agent
+            )
             data["question"] = response
             data["meta"] = {
                 "q-gen_model": model,

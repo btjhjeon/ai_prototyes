@@ -1,4 +1,4 @@
-from ai_prototypes.language import openai_api, glm_api
+from ai_prototypes.language.api import openai, glm
 
 
 class ConversationBot:
@@ -28,9 +28,9 @@ class ConversationBot:
 
 
 if __name__ == "__main__":
-    adot_agent = glm_api.AdotAgent("http://172.27.30.115", "철수")
+    adot_agent = glm.AdotAgent("http://172.27.30.115", "철수")
     adot_bot = ConversationBot(adot_agent)
-    chatgpt_agent = openai_api.ChatGPTAgent("철수")
+    chatgpt_agent = openai.ChatGPTAgent("철수")
     chatgpt_bot = ConversationBot(chatgpt_agent)
 
     ups_summary = "나는 9살 남자 어린이이며 6살 동생이 있음."
