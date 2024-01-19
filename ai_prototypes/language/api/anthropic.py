@@ -2,7 +2,7 @@ import os
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 
 
-def get_agent(key_path="anthropic.key"):
+def get_client(key_path="anthropic.key"):
     assert os.path.exists(key_path)
 
     with open(key_path, 'r') as f:
@@ -10,11 +10,11 @@ def get_agent(key_path="anthropic.key"):
     return Anthropic(api_key=api_key)
 
 
-agent = get_agent()
+client = get_client()
 
 
 def request_inference(prompt, model="claude-2", max_tokens_to_sample=1024, verbos=False):
-    completion = agent.completions.create(
+    completion = client.completions.create(
         model=model,
         max_tokens_to_sample=max_tokens_to_sample,
         prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",

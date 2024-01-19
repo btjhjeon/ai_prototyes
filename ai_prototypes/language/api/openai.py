@@ -1,9 +1,19 @@
+import os
 from typing import List, Dict
 
 import openai
-from openai import ChatCompletion, Completion
+from openai import OpenAI
 
-openai.api_key_path = "openai.key"
+
+def get_client(key_path="openai.key"):
+    assert os.path.exists(key_path)
+
+    with open(key_path, 'r') as f:
+        api_key = f.readline().strip()
+    return OpenAI(api_key=api_key)
+
+
+client = get_client()
 
 
 class ChatGPTAgent:
@@ -14,7 +24,7 @@ class ChatGPTAgent:
 
     def conversation(self, utterance: str, history: List[Dict]):
         new_history = history + [{"role": "user", "content": utterance}]
-        completion = ChatCompletion.create(
+        completion = client.chat.completions.create(
             model=self.model,
             messages=new_history
         )
@@ -56,7 +66,10 @@ def retry_with_exponential_backoff(
     exponential_base: float = 2,
     jitter: bool = True,
     max_retries: int = 10,
-    errors: tuple = (openai.error.RateLimitError, openai.error.Timeout),
+    errors: tuple = (
+        openai.RateLimitError,
+        openai.Timeout
+    ),
 ):
     """Retry a function with exponential backoff."""
 
@@ -114,14 +127,14 @@ def request_inference(prompt, system_prompt="", model="gpt-3.5-turbo", verbos=Fa
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        response = ChatCompletion.create(
+        response = client.chat.completions.create(
             model=model,
             messages=messages,
             top_p=0
         )
         result = response.choices[0].message.content.strip()
     else:
-        response = Completion.create(
+        response = client.completion.create(
             model=model,
             prompt=prompt,
             top_p=0
