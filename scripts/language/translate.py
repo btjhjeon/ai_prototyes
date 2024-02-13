@@ -26,11 +26,18 @@ def translate(input, keep_str=None):
                     "Keep the meaning same, but make them more literary." \
                     "I want you to only reply the correction, the improvements and nothing else, do not write explanations."
     user_prefix_prompt = "Please translate the following into Korean:\n"
-    inputs = input.split(keep_str)
+    if keep_str:
+        inputs = input.split(keep_str)
+    else:
+        inputs = [input]
     outputs = [get_response(user_prefix_prompt + p, system_prompt=system_prompt, agent="openai") if p else ("", "") for p in inputs]
     model = [output[1] for output in outputs if output[1]][0]
     outputs = [output[0] for output in outputs]
-    return keep_str.join(outputs), model
+    if keep_str:
+        outputs = keep_str.join(outputs)
+    else:
+        outputs = outputs[0]
+    return outputs, model
 
 
 if __name__=="__main__":
