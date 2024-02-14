@@ -3,29 +3,35 @@ from collections import OrderedDict
 from langdetect import detect
 
 from ai_prototypes.utils.file import write_data
-from scripts.language.translate import translate
+from ai_prototypes.language.translation import translate
 
 
 def main():
+    agent = "openai"
+    output_txt = "data/imagenet/class_ko.txt"
+    output_json = "data/imagenet/class_ko.json"
+
     labels = []
     IMAGENET2012_CLASSES_KO = OrderedDict()
     for k, v in tqdm.tqdm(IMAGENET2012_CLASSES.items()):
-        translated, _ = translate(v)
+        translated, _ = translate(v, agent=agent)
         translated = set(translated.split(','))
+        # translated = [translate(s.strip(), agent="google")[0] for s in v.split(',')]
+        # translated = set(translated)
         filtered = []
         for t in translated:
             if detect(t) == 'ko':
                 filtered.append(t.strip())
             else:
-                t, _ = translate(t)
+                t, _ = translate(t, agent=agent)
                 filtered.append(t.strip())
         translated = ', '.join(set(filtered))
                 
         labels.append(translated)
         IMAGENET2012_CLASSES_KO[k] = translated
 
-    write_data(labels, 'data/imagenet/class_ko.txt')
-    write_data(IMAGENET2012_CLASSES_KO, "data/imagenet/class_ko.json")
+    write_data(labels, output_txt)
+    write_data(IMAGENET2012_CLASSES_KO, output_json)
 
 
 IMAGENET2012_CLASSES = OrderedDict(
