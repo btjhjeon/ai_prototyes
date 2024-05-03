@@ -47,29 +47,29 @@ def load_txt(path):
         return f.readlines()
 
 
-def write_data(data, path):
+def write_data(data, path, **kwargs):
     ext = os.path.splitext(path)[1]
     if ext == ".json":
-        write_json(data, path)
+        write_json(data, path, **kwargs)
     elif ext == ".jsonl":
-        write_jsonl(data, path)
+        write_jsonl(data, path, **kwargs)
     elif ext == ".csv":
-        write_csv(data, path)
+        write_csv(data, path, **kwargs)
     elif ext == ".txt":
-        write_txt(data, path)
+        write_txt(data, path, **kwargs)
 
 
-def write_json(data, path):
+def write_json(data, path, **kwargs):
     make_dirs(os.path.split(path)[0], exist_ok=True)
     with open(path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False)
+        json.dump(data, f, ensure_ascii=False, **kwargs)
 
 
-def write_jsonl(data, path):
+def write_jsonl(data, path, **kwargs):
     make_dirs(os.path.split(path)[0], exist_ok=True)
     with open(path, 'w', encoding='utf-8') as f:
         for d in data:
-            f.write(json.dumps(d, ensure_ascii=False)+"\n")
+            f.write(json.dumps(d, ensure_ascii=False, **kwargs)+"\n")
 
 
 def write_csv(data, path, header=None):

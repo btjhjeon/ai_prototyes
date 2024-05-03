@@ -64,14 +64,15 @@ class ChatGPTAgent:
 # define a retry decorator
 def retry_with_exponential_backoff(
     func,
-    initial_delay: float = 2,
-    exponential_base: float = 2,
+    initial_delay: float = 1,
+    exponential_base: float = 1.1,
     jitter: bool = True,
     max_retries: int = 10,
     errors: tuple = (
         openai.RateLimitError,
         openai.Timeout
     ),
+    num_trials: int = 10
 ):
     """Retry a function with exponential backoff."""
 
@@ -81,7 +82,7 @@ def retry_with_exponential_backoff(
         delay = initial_delay
 
         # Loop until a successful response or max_retries is hit or an exception is raised
-        while True:
+        for _ in range(num_trials):
             try:
                 return func(*args, **kwargs)
 
@@ -105,19 +106,29 @@ def retry_with_exponential_backoff(
             # Raise exceptions for any errors not specified
             except Exception as e:
                 raise e
+        return ""
 
     return wrapper
 
 
 CHAT_MODELS = [
     "gpt-3.5-turbo",
-    "gpt-3.5-turbo-0301",
+    "gpt-3.5-turbo-0125",
     "gpt-3.5-turbo-0613",
+    "gpt-3.5-turbo-1106",
+    "gpt-3.5-turbo-instruct",
     "gpt-3.5-turbo-16k",
     "gpt-3.5-turbo-16k-0613",
     "gpt-4",
-    "gpt-4-0314",
     "gpt-4-0613",
+    "gpt-4-32k",
+    "gpt-4-0125-preview",
+    "gpt-4-1106-preview",
+    "gpt-4-turbo",
+    "gpt-4-turbo-2024-04-09",
+    "gpt-4-turbo-preview",
+    "gpt-4-vision-preview",
+    "gpt-4-1106-vision-preview",
 ]
 
 

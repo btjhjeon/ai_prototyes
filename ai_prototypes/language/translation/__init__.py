@@ -2,7 +2,7 @@ from ..api import get_response
 from . import google
 
 
-def translate(input, keep_str=None, agent="openai"):
+def translate(input, keep_str=None, agent="openai", model='gpt-3.5-turbo'):
     if len(input) <= 1:
         return None, None
 
@@ -20,8 +20,13 @@ def translate(input, keep_str=None, agent="openai"):
             inputs = input.split(keep_str)
         else:
             inputs = [input]
-        outputs = [get_response(user_prefix_prompt + p, system_prompt=system_prompt, agent=agent) if p else ("", "") for p in inputs]
-        model = [output[1] for output in outputs if output[1]][0]
+        outputs = [get_response(
+                        user_prefix_prompt + p,
+                        system_prompt=system_prompt,
+                        agent=agent,
+                        model=model
+                    ) if p else ("", "") for p in inputs]
+        model = " & ".join(set([output[1] for output in outputs if output[1]]))
         outputs = [output[0] for output in outputs]
         if keep_str:
             outputs = keep_str.join(outputs)
