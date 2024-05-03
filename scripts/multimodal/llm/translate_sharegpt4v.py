@@ -66,10 +66,13 @@ if __name__=="__main__":
         try:
             translated, model = translate(value, keep_str, agent=agent)
 
-            if len(translated) > len(value) * 4 or len(translated) < len(value) // 4:
+            if translated is None or \
+                    len(translated) > len(value) * 4 or \
+                    len(translated) < len(value) // 4:
                 print(f"[ID] {id}")
                 print(f"[EN] {value}")
-                print(f"[KR] {translated}")
+                if translated:
+                    print(f"[KR] {translated}")
 
                 translated, model = translate(value, keep_str, agent=agent, model="gpt-4-turbo")
         except Exception:

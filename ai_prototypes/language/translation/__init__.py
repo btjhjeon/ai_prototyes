@@ -1,5 +1,5 @@
 from ..api import get_response
-from . import google
+# from . import google
 
 
 def translate(input, keep_str=None, agent="openai", model='gpt-3.5-turbo'):
@@ -26,6 +26,10 @@ def translate(input, keep_str=None, agent="openai", model='gpt-3.5-turbo'):
                         agent=agent,
                         model=model
                     ) if p else ("", "") for p in inputs]
+        
+        if any([output[0] is None for output in outputs]):
+            return None, None
+
         model = " & ".join(set([output[1] for output in outputs if output[1]]))
         outputs = [output[0] for output in outputs]
         if keep_str:

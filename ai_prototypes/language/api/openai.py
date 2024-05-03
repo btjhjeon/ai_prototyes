@@ -106,7 +106,7 @@ def retry_with_exponential_backoff(
             # Raise exceptions for any errors not specified
             except Exception as e:
                 raise e
-        return ""
+        return None
 
     return wrapper
 
